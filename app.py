@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import joblib
 import numpy as np
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all domains
 
 # Load model and label encoder
 model = joblib.load("model/pregnancy_risk_model.pkl")
 label_encoder = joblib.load("model/label_encoder.pkl")
 
-# Feature mapping by trimester
 TRIMESTER_PARAMS = {
     "First": [
         "Age_Risk", "History_Miscarriage", "Previous_High_Risk", "Hyperemesis",
@@ -51,7 +52,6 @@ def predict():
             else:
                 input_dict[feature] = -1
 
-    # Fill missing features with -1
     full_features = model.feature_names_in_
     input_vector = [input_dict.get(f, -1) for f in full_features]
 
@@ -59,7 +59,6 @@ def predict():
     risk_label = label_encoder.inverse_transform([prediction])[0]
 
     return jsonify({"risk_level": risk_label})
-
 
 if __name__ == "__main__":
     app.run(debug=True)
